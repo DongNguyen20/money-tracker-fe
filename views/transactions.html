@@ -1,0 +1,101 @@
+<div class="view-header">
+    <h2>Giao dịch</h2>
+    <button class="btn-primary" id="btnAddTransaction">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2V14M2 8H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <span>Thêm giao dịch</span>
+    </button>
+</div>
+<div class="txn-filters">
+    <div class="filter-tabs" id="txnFilterTabs">
+        <button class="filter-tab active" data-type="all">Tất cả</button>
+        <button class="filter-tab" data-type="expense"><span class="dot dot-expense"></span>Chi tiêu</button>
+        <button class="filter-tab" data-type="income"><span class="dot dot-income"></span>Thu nhập</button>
+        <button class="filter-tab" data-type="saving"><span class="dot dot-saving"></span>Tiết kiệm</button>
+    </div>
+    <div class="filter-controls">
+        <select id="txnCategoryFilter" class="filter-select">
+            <option value="all">Tất cả danh mục</option>
+        </select>
+        <input type="date" id="txnDateFrom" class="filter-date" title="Từ ngày">
+        <input type="date" id="txnDateTo" class="filter-date" title="Đến ngày">
+    </div>
+</div>
+<div class="txn-list" id="txnList"></div>
+<div class="txn-pagination" id="txnPagination">
+    <div class="pagination-info">
+        Hiển thị
+        <select id="txnPageSize">
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+        </select>
+        giao dịch/trang
+    </div>
+    <div class="pagination-controls">
+        <button id="prevPage" class="btn-icon"><svg width="16" height="16" viewBox="0 0 16 16"
+                fill="none">
+                <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg></button>
+        <div class="pagination-status">
+            <span id="pageInfo">Trang 1/1</span>
+            <span id="totalInfo" class="total-info">Tổng: 0</span>
+        </div>
+        <button id="nextPage" class="btn-icon"><svg width="16" height="16" viewBox="0 0 16 16"
+                fill="none">
+                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg></button>
+    </div>
+</div>
+<div class="empty-state" id="txnEmpty" style="display:none;"></div>
+
+<div class="modal-overlay" id="txnModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="txnModalTitle">Thêm giao dịch</h2>
+            <button class="modal-close" id="txnModalClose"><svg width="20" height="20" viewBox="0 0 20 20"
+                    fill="none">
+                    <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg></button>
+        </div>
+        <form id="txnForm" novalidate>
+            <input type="hidden" id="txnEditId">
+            <input type="hidden" id="txnDateHidden">
+            <div class="modal-body">
+                <div class="amount-input-wrapper">
+                    <input type="text" id="txnAmount" placeholder="0" class="amount-input">
+                    <span class="amount-currency">₫</span>
+                </div>
+                <div class="type-selector" id="txnTypeSelector">
+                    <button type="button" class="type-btn active" data-type="expense"><span
+                            class="dot dot-expense"></span>Chi tiêu</button>
+                    <button type="button" class="type-btn" data-type="income"><span
+                            class="dot dot-income"></span>Thu nhập</button>
+                    <button type="button" class="type-btn" data-type="saving"><span
+                            class="dot dot-saving"></span>Tiết kiệm</button>
+                </div>
+                <div class="input-group">
+                    <label for="txnCategory">Danh mục</label>
+                    <select id="txnCategory"></select>
+                </div>
+                <div class="input-group">
+                    <label for="txnNote">Ghi chú</label>
+                    <input type="text" id="txnNote" placeholder="Ví dụ: Cơm trưa, Tiền điện..." autocomplete="off">
+                </div>
+                <!-- Date field inside modal-body -->
+                <div class="input-group">
+                    <label for="txnDate">Ngày</label>
+                    <input type="date" id="txnDate" formnovalidate style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); padding: 12px; width: 100%;" data-default-date="today">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="txnCancel">Huỷ</button>
+                <button type="button" class="btn-save" id="txnSaveBtn" formnovalidate>Lưu giao dịch</button>
+            </div>
+        </form>
+    </div>
+</div>

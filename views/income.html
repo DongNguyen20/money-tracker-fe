@@ -1,0 +1,91 @@
+<div class="view-header">
+    <h2>Quản lý thu nhập</h2>
+    <button class="btn-primary" id="btnAddIncome">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2V14M2 8H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <span>Thêm thu nhập</span>
+    </button>
+</div>
+
+<div class="summary-cards">
+    <div class="summary-card card-income">
+        <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+        <span class="card-label">Tổng thu nhập tháng này</span>
+        <span class="card-amount" id="totalIncomeMonth">0 ₫</span>
+    </div>
+    <div class="summary-card card-balance">
+        <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+        <span class="card-label">Số dư hiện tại</span>
+        <span class="card-amount" id="currentBalanceIncome">0 ₫</span>
+    </div>
+</div>
+
+<div class="txn-filters">
+    <div class="filter-controls">
+        <select id="incomeCategoryFilter" class="filter-select">
+            <option value="all">Tất cả danh mục</option>
+        </select>
+        <input type="date" id="incomeDateFrom" class="filter-date" title="Từ ngày">
+        <input type="date" id="incomeDateTo" class="filter-date" title="Đến ngày">
+    </div>
+</div>
+
+<div class="txn-list" id="incomeList"></div>
+
+<div class="txn-pagination" id="incomePagination">
+    <div class="pagination-info">
+        Hiển thị
+        <select id="incomePageSize">
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+        </select>
+        thu nhập/trang
+    </div>
+    <div class="pagination-controls">
+        <button id="prevIncomePage" class="btn-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
+        <div class="pagination-status">
+            <span id="incomePageInfo">Trang 1/1</span>
+            <span id="incomeTotalInfo" class="total-info">Tổng: 0</span>
+        </div>
+        <button id="nextIncomePage" class="btn-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
+    </div>
+</div>
+
+<div class="empty-state" id="incomeEmpty" style="display:none;"></div>
+
+<!-- Income Modal -->
+<div class="modal-overlay" id="incomeModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="incomeModalTitle">Thêm thu nhập</h2>
+            <button class="modal-close" id="incomeModalClose"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg></button>
+        </div>
+        <form id="incomeForm" novalidate>
+            <input type="hidden" id="incomeEditId">
+            <div class="modal-body">
+                <div class="amount-input-wrapper">
+                    <input type="text" id="incomeAmount" placeholder="0" required class="amount-input">
+                    <span class="amount-currency">₫</span>
+                </div>
+                <div class="input-group">
+                    <label for="incomeCategory">Danh mục thu nhập</label>
+                    <select id="incomeCategory" required></select>
+                </div>
+                <div class="input-group">
+                    <label for="incomeNote">Ghi chú</label>
+                    <input type="text" id="incomeNote" placeholder="Ví dụ: Lương tháng 5, Thưởng..." autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="incomeDate">Ngày</label>
+                    <input type="date" id="incomeDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="incomeCancel">Huỷ</button>
+                <button type="submit" class="btn-save">Lưu thu nhập</button>
+            </div>
+        </form>
+    </div>
+</div>

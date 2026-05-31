@@ -1,0 +1,63 @@
+<div class="view-header">
+    <h2>Danh mục</h2>
+    <button class="btn-primary" id="btnAddCategory">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2V14M2 8H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <span>Thêm danh mục</span>
+    </button>
+</div>
+<div class="cat-tabs" id="catTabs">
+    <button class="filter-tab active" data-type="expense">Chi tiêu</button>
+    <button class="filter-tab" data-type="income">Thu nhập</button>
+    <button class="filter-tab" data-type="saving">Tiết kiệm</button>
+</div>
+<div class="cat-grid-v2" id="catGrid"></div>
+<div class="empty-state" id="catEmpty">
+    <div class="empty-icon">📂</div>
+    <h3>Chưa có danh mục nào</h3>
+    <p>Thêm danh mục để phân loại giao dịch!</p>
+</div>
+
+<!-- Add/Edit Category Modal -->
+<div class="modal-overlay" id="catModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="catModalTitle">Thêm danh mục</h2>
+            <button class="modal-close" id="catModalClose"><svg width="20" height="20" viewBox="0 0 20 20"
+                    fill="none">
+                    <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg></button>
+        </div>
+        <form id="catForm" novalidate>
+            <input type="hidden" id="catEditId">
+            <div class="modal-body">
+                <div class="emoji-select-row">
+                    <button type="button" class="emoji-trigger" id="catEmojiBtn">📌</button>
+                    <div class="input-group" style="flex:1">
+                        <label for="catName">Tên danh mục</label>
+                        <input type="text" id="catName" placeholder="Ví dụ: Ăn uống" required maxlength="30"
+                            autocomplete="off">
+                    </div>
+                </div>
+                <div class="emoji-grid" id="catEmojiGrid" style="display:none"></div>
+                <div class="input-group">
+                    <label>Loại</label>
+                    <div class="type-selector" id="catTypeSelector">
+                        <button type="button" class="type-btn active" data-type="expense">Chi tiêu</button>
+                        <button type="button" class="type-btn" data-type="income">Thu nhập</button>
+                        <button type="button" class="type-btn" data-type="saving">Tiết kiệm</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Màu sắc</label>
+                    <div class="color-picker" id="catColorPicker"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="catCancel">Huỷ</button>
+                <button type="submit" class="btn-save">Lưu danh mục</button>
+            </div>
+        </form>
+    </div>
+</div>

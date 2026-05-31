@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Tracker Test Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .agent-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .agent-header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .agent-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .agent-subtitle {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .agent-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .test-panel, .console-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+            background: #f8f9fa;
+        }
+
+        .test-item.pass {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .test-item.fail {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .test-item.running {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .test-item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .test-item-status {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .console-line {
+            margin-bottom: 5px;
+        }
+
+        .console-line.error {
+            color: #ff6b6b;
+        }
+
+        .console-line.success {
+            color: #51cf66;
+        }
+
+        .console-line.warning {
+            color: #ffd93d;
+        }
+
+        .console-line.info {
+            color: #74c0fc;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="agent-container">
+        <!-- Header -->
+        <div class="agent-header">
+            <h1 class="agent-title">🤖 Money Tracker Test Agent</h1>
+            <p class="agent-subtitle">Hệ thống test tự động cho Money Tracker Application</p>
+            
+            <!-- Stats -->
+            <div class="agent-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTests">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="passedTests">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="failedTests">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="successRate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="control-panel">
+                <button class="btn btn-primary" id="runAllTests" onclick="runAllTests()">
+                    ▶️ Chạy Tất Cả Tests
+                </button>
+                <button class="btn btn-secondary" id="runQuickTest" onclick="runQuickTest()">
+                    ⚡ Quick Test
+                </button>
+                <button class="btn btn-secondary" id="clearResults" onclick="clearResults()">
+                    🗑️ Xóa Kết Quả
+                </button>
+                <button class="btn btn-success" id="openMainApp" onclick="openMainApp()">
+                    🌐 Mở Money Tracker
+                </button>
+            </div>
+
+            <!-- Progress -->
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Test Panel -->
+            <div class="test-panel">
+                <div class="panel-title">
+                    <span>📋 Test Cases</span>
+                    <span id="testStatus">Ready</span>
+                </div>
+                <div id="testResults">
+                    <div class="test-item">
+                        <div class="test-item-name">Chưa có test nào được chạy</div>
+                        <div class="test-item-status">Click "Chạy Tất Cả Tests" để bắt đầu</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Console Panel -->
+            <div class="console-panel">
+                <div class="panel-title">
+                    <span>🖥️ Console Output</span>
+                    <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="clearConsole()">
+                        Clear
+                    </button>
+                </div>
+                <div class="console-output" id="consoleOutput">
+                    <div class="console-line info">Test Agent ready. Waiting for test execution...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="test-runner.js"></script>
+    <script src="tests/validation-tests.js"></script>
+    <script src="tests/functional-tests.js"></script>
+    <script src="init.js"></script>
+</body>
+</html>

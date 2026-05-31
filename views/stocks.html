@@ -1,0 +1,147 @@
+<div class="view-header">
+    <h2>Chứng khoán</h2>
+    <div class="view-actions">
+        <button class="btn-stock-cash" id="btnStockCash">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+                <path d="M12 14v3"></path>
+                <path d="M12 7v3"></path>
+            </svg>
+            <span>Nộp/Rút tiền</span>
+        </button>
+        <button class="btn-primary" id="btnAddStock">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            <span>Thêm lệnh</span>
+        </button>
+    </div>
+</div>
+<div class="stock-summary-grid">
+    <div class="s-card">
+        <span class="s-label">Tiền mặt</span>
+        <span class="s-value" id="stockCashBalance">0 ₫</span>
+    </div>
+    <div class="s-card">
+        <span class="s-label">Giá trị CK (Tạm tính)</span>
+        <span class="s-value" id="stockMarketValue">0 ₫</span>
+    </div>
+    <div class="s-card highlighted">
+        <span class="s-label">Tổng tài sản</span>
+        <span class="s-value" id="stockTotalAssets">0 ₫</span>
+    </div>
+    <div class="s-card">
+        <span class="s-label">Lợi nhuận chốt</span>
+        <span class="s-value income" id="stockRealizedTotal">0 ₫</span>
+    </div>
+</div>
+<div class="filter-tabs" id="stockViewTabs" style="margin-bottom: 15px;">
+    <button class="filter-tab active" data-view="portfolio">Danh mục</button>
+    <button class="filter-tab" data-view="history">Lịch sử lệnh</button>
+    <button class="filter-tab" data-view="trades">Lịch sử chốt lời</button>
+</div>
+<div id="stockPortfolioView">
+    <div id="stockChartSection" style="display: none; margin-bottom: 24px;">
+        <div class="grid-2" style="gap: 20px;">
+            <div
+                style="background: var(--bg-card); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color);">
+                <h3
+                    style="font-size: 0.8rem; margin-bottom: 10px; color: var(--text-secondary); text-align: center;">
+                    Hiệu suất Lãi/Lỗ</h3>
+                <canvas id="stockProfitChart" style="max-height: 180px; width: 100%;"></canvas>
+            </div>
+            <div
+                style="background: var(--bg-card); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color);">
+                <h3
+                    style="font-size: 0.8rem; margin-bottom: 10px; color: var(--text-secondary); text-align: center;">
+                    Tỷ trọng danh mục</h3>
+                <canvas id="stockAllocationChart" style="max-height: 180px; width: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div id="stockPortfolioList"></div>
+</div>
+<div id="stockTradesView" class="hidden"></div>
+<div id="stockHistoryView" class="hidden">
+    <div class="stock-list" id="stockList"></div>
+</div>
+
+<!-- Add/Edit Stock Modal -->
+<div class="modal-overlay" id="stockModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="stockModalTitle">Thêm lệnh chứng khoán</h2>
+            <button class="modal-close" id="stockModalClose"><svg width="20" height="20" viewBox="0 0 20 20"
+                    fill="none">
+                    <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg></button>
+        </div>
+        <form id="stockForm" novalidate>
+            <input type="hidden" id="stockEditId">
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="stockTicker">Mã chứng khoán (Ticker)</label>
+                    <input type="text" id="stockTicker" placeholder="Ví dụ: VNM, HPG..." required maxlength="10"
+                        style="text-transform: uppercase">
+                </div>
+                <div class="type-selector" id="stockTypeSelector">
+                    <button type="button" class="type-btn active" data-type="buy">Mua</button>
+                    <button type="button" class="type-btn" data-type="sell">Bán</button>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label for="stockQuantity">Số lượng</label>
+                        <input type="number" id="stockQuantity" placeholder="0" required min="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="stockPrice">Giá đặt (VNĐ)</label>
+                        <input type="text" id="stockPrice" placeholder="0" required class="amount-input-small">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="stockDate">Ngày giao dịch</label>
+                    <input type="date" id="stockDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="stockCancel">Huỷ</button>
+                <button type="submit" class="btn-save">Lưu lệnh</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stock Cash Modal -->
+<div class="modal-overlay" id="stockCashModal">
+    <div class="modal modal-sm">
+        <div class="modal-header">
+            <h2>Nộp/Rút tiền chứng khoán</h2>
+            <button class="modal-close" id="stockCashClose"><svg width="20" height="20" viewBox="0 0 20 20"
+                    fill="none">
+                    <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg></button>
+        </div>
+        <form id="stockCashForm" novalidate>
+            <div class="modal-body">
+                <div class="type-selector" id="stockCashType">
+                    <button type="button" class="type-btn active" data-type="deposit">Nộp tiền</button>
+                    <button type="button" class="type-btn" data-type="withdraw">Rút tiền</button>
+                </div>
+                <div class="amount-input-wrapper" style="margin-top: 15px;">
+                    <input type="text" id="stockCashAmount" placeholder="0" required class="amount-input">
+                    <span class="amount-currency">₫</span>
+                </div>
+                <div class="input-group">
+                    <label for="stockCashDate">Ngày</label>
+                    <input type="date" id="stockCashDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn-save">Xác nhận</button>
+            </div>
+        </form>
+    </div>
+</div>

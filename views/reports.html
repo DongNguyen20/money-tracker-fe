@@ -1,0 +1,120 @@
+<div class="view-header">
+    <h2>Báo cáo tài chính</h2>
+    <div class="view-actions">
+        <button class="btn-icon" id="printReport" title="In báo cáo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        </button>
+    </div>
+</div>
+
+<div class="cat-tabs" id="reportTabs">
+    <button class="filter-tab active" data-tab="daily">Hàng ngày</button>
+    <button class="filter-tab" data-tab="yearly">Hàng tháng (12 tháng)</button>
+    <button class="filter-tab" data-tab="all-years">Tất cả các năm</button>
+</div>
+
+<div class="report-content" id="reportContent">
+    <!-- Daily Tab -->
+    <div class="tab-pane active" id="pane-daily">
+        <div class="dashboard-grid">
+            <div class="chart-card">
+                <h3>Chi tiêu theo danh mục (Tháng này)</h3>
+                <div class="report-chart-container">
+                    <canvas id="dailyExpenseChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Thu nhập vs Chi tiêu (7 ngày gần nhất)</h3>
+                <div class="report-chart-container">
+                    <canvas id="dailyTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>Chi tiết giao dịch gần đây</h3>
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Hạng mục</th>
+                            <th>Ghi chú</th>
+                            <th>Loại</th>
+                            <th class="text-right">Số tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yearly Tab -->
+    <div class="tab-pane" id="pane-yearly">
+        <div class="chart-card">
+            <div class="view-header" style="margin-bottom: 20px">
+                <h3>Diễn biến tài chính trong năm</h3>
+                <select id="reportYearSelect" class="filter-select"></select>
+            </div>
+            <div class="report-chart-container large">
+                <canvas id="yearlyTrendChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card" style="margin-top: 24px">
+            <h3>Diễn biến chi tiết theo danh mục (12 tháng)</h3>
+            <div class="report-chart-container large">
+                <canvas id="yearlyCategoryDetailChart"></canvas>
+            </div>
+        </div>
+        <div class="dashboard-grid">
+            <div class="chart-card">
+                <h3>Phân bổ chi tiêu cả năm</h3>
+                <div class="report-chart-container">
+                    <canvas id="yearlyExpenseChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Thống kê theo tháng</h3>
+                <div class="table-responsive">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Tháng</th>
+                                <th class="text-right">Thu nhập</th>
+                                <th class="text-right">Chi tiêu</th>
+                                <th class="text-right">Tích luỹ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="yearlyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Years Tab -->
+    <div class="tab-pane" id="pane-all-years">
+        <div class="chart-card">
+            <h3>Tăng trưởng tài chính qua các năm</h3>
+            <div class="report-chart-container large">
+                <canvas id="allYearsTrendChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>Tổng kết theo năm</h3>
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Năm</th>
+                            <th class="text-right">Tổng Thu nhập</th>
+                            <th class="text-right">Tổng Chi tiêu</th>
+                            <th class="text-right">Tổng Tích luỹ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allYearsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

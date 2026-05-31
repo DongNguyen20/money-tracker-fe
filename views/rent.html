@@ -1,0 +1,137 @@
+<div class="view-header">
+    <h2>Tiền nhà</h2>
+    <div class="view-actions">
+        <button class="btn-icon" id="btnRentRefresh" title="Sắp xếp tăng dần">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+                <polyline points="21 3 21 8 16 8"></polyline>
+            </svg>
+        </button>
+        <button class="btn-icon" id="btnRentSettings" title="Cài đặt giá điện/nước">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                    d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.72v.18a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
+                </path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        </button>
+        <button class="btn-primary" id="btnAddRent">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            <span>Ghi hoá đơn</span>
+        </button>
+    </div>
+</div>
+<div class="rent-summary-year" id="rentYearSummary">
+    <!-- Dynamic summary -->
+</div>
+<div class="filter-row" style="margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="p-label" style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Lọc
+            theo năm:</span>
+        <select id="rentYearFilter" class="select-small"
+            style="min-width: 100px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary);"></select>
+    </div>
+</div>
+<div class="rent-list" id="rentList"></div>
+
+<!-- Add/Edit Rent Modal -->
+<div class="modal-overlay" id="rentModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="rentModalTitle">Ghi hoá đơn tiền nhà</h2>
+            <button class="modal-close" id="rentModalClose"><svg width="20" height="20" viewBox="0 0 20 20"
+                    fill="none">
+                    <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg></button>
+        </div>
+        <form id="rentForm" novalidate>
+            <input type="hidden" id="rentEditId">
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="rentMonth">Tháng hoá đơn</label>
+                    <input type="month" id="rentMonth">
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label for="rentBase">Tiền nhà gốc</label>
+                        <input type="text" id="rentBase" placeholder="0" required class="amount-input-small">
+                    </div>
+                    <div class="input-group">
+                        <label for="rentWifi">Tiền WiFi</label>
+                        <input type="text" id="rentWifi" placeholder="0" class="amount-input-small">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label for="rentGarbage">Tiền rác</label>
+                        <input type="text" id="rentGarbage" placeholder="0" class="amount-input-small">
+                    </div>
+                    <div class="input-group">
+                        <label for="rentOther">Khác</label>
+                        <input type="text" id="rentOther" placeholder="0" class="amount-input-small">
+                    </div>
+                </div>
+                <div class="divider" data-label="Điện & Nước"></div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label for="rentElec">Số điện (kWh)</label>
+                        <input type="number" id="rentElec" placeholder="0" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="rentWater">Số nước (m³)</label>
+                        <input type="number" id="rentWater" placeholder="0" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="rentCancel">Huỷ</button>
+                <button type="submit" class="btn-save">Lưu hoá đơn</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Rent Settings Modal -->
+<div class="modal-overlay" id="rentSettingsModal">
+    <div class="modal modal-sm">
+        <div class="modal-header">
+            <h2>Cấu hình đơn giá</h2>
+            <button class="modal-close" id="rentSettingsClose"><svg width="20" height="20" viewBox="0 0 20 20"
+                    fill="none">
+                    <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg></button>
+        </div>
+        <form id="rentSettingsForm" novalidate>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="defaultBase">Tiền phòng mặc định</label>
+                    <input type="text" id="defaultBase" required class="amount-input-small">
+                </div>
+                <div class="input-group">
+                    <label for="priceElec">Giá điện (VNĐ/kWh)</label>
+                    <input type="text" id="priceElec" required class="amount-input-small">
+                </div>
+                <div class="input-group">
+                    <label for="priceWater">Giá nước (VNĐ/m³)</label>
+                    <input type="text" id="priceWater" required class="amount-input-small">
+                </div>
+                <div class="input-group">
+                    <label for="defaultWifi">WiFi mặc định</label>
+                    <input type="text" id="defaultWifi" class="amount-input-small">
+                </div>
+                <div class="input-group">
+                    <label for="defaultGarbage">Tiền rác mặc định</label>
+                    <input type="text" id="defaultGarbage" class="amount-input-small">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn-save">Cập nhật cấu hình</button>
+            </div>
+        </form>
+    </div>
+</div>
