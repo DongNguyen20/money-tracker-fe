@@ -2,7 +2,7 @@ const fs = require('fs');
 const content = fs.readFileSync('index.html', 'utf8');
 
 const startIdx = content.indexOf('<main class="main-content" id="mainContent">');
-const endIdx = content.indexOf('<script src="app.js"></script>');
+const endIdx = content.indexOf('<script src="js/app.js"></script>');
 
 if (startIdx !== -1 && endIdx !== -1) {
     const before = content.substring(0, startIdx);
