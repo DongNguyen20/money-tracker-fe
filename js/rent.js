@@ -17,8 +17,10 @@ window.RentManager = {
     },
 
 
-    init() {
-        this.loadSettings();
+    async init() {
+        await this.loadSettings();
+        await this.loadRentHistory();
+        
         if (!App.state.rentHistory) {
             App.state.rentHistory = [];
         }
@@ -26,6 +28,26 @@ window.RentManager = {
         this.bindEvents();
         this.updateYearFilter();
         this.render();
+    },
+
+    async loadRentHistory() {
+        try {
+            const rents = await ApiService.rent.getAll();
+            App.state.rentHistory = rents || [];
+        } catch (error) {
+            console.error('Failed to load rent history from API:', error);
+            // Fallback to localStorage if API fails
+            const stored = localStorage.getItem('mt_rent_history');
+            if (stored) {
+                try {
+                    App.state.rentHistory = JSON.parse(stored);
+                } catch (e) {
+                    App.state.rentHistory = [];
+                }
+            } else {
+                App.state.rentHistory = [];
+            }
+        }
     },
 
     updateYearFilter() {
@@ -38,20 +60,78 @@ window.RentManager = {
         select.innerHTML = sortedYears.map(y => `<option value="${y}" ${y == this.state.currentYear ? 'selected' : ''}>Năm ${y}</option>`).join('');
     },
 
-    loadSettings() {
-        const stored = localStorage.getItem('mt_rent_settings');
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                this.state.settings = { ...this.state.settings, ...parsed };
-            } catch (e) {
-                console.error('Failed to parse rent settings', e);
+    async loadSettings() {
+        try {
+            // Try to load from backend ConfigParam API
+            const settingsKeys = ['rent.defaultBase', 'rent.priceElec', 'rent.priceWater', 'rent.defaultWifi', 'rent.defaultGarbage'];
+            const settings = {};
+            
+            for (const key of settingsKeys) {
+                try {
+                    const config = await ApiService.configParam.getByKey(key);
+                    const settingKey = key.replace('rent.', '');
+                    settings[settingKey] = parseFloat(config.paramValue);
+                } catch (e) {
+                    // If config not found, use default
+                    const settingKey = key.replace('rent.', '');
+                    settings[settingKey] = this.state.settings[settingKey];
+                }
+            }
+            
+            this.state.settings = { ...this.state.settings, ...settings };
+        } catch (error) {
+            console.error('Failed to load settings from API:', error);
+            // Fallback to localStorage
+            const stored = localStorage.getItem('mt_rent_settings');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    this.state.settings = { ...this.state.settings, ...parsed };
+                } catch (e) {
+                    console.error('Failed to parse rent settings', e);
+                }
             }
         }
     },
 
-    saveSettings() {
-        localStorage.setItem('mt_rent_settings', JSON.stringify(this.state.settings));
+    async saveSettings() {
+        try {
+            // Save to backend ConfigParam API
+            const settingsMap = {
+                'rent.defaultBase': this.state.settings.defaultBase,
+                'rent.priceElec': this.state.settings.priceElec,
+                'rent.priceWater': this.state.settings.priceWater,
+                'rent.defaultWifi': this.state.settings.defaultWifi,
+                'rent.defaultGarbage': this.state.settings.defaultGarbage
+            };
+
+            for (const [key, value] of Object.entries(settingsMap)) {
+                try {
+                    await ApiService.configParam.updateByKey(key, {
+                        paramKey: key,
+                        paramValue: value.toString(),
+                        unit: 'VND',
+                        description: `Rent setting: ${key}`
+                    });
+                } catch (e) {
+                    // If update fails, try creating
+                    try {
+                        await ApiService.configParam.create({
+                            paramKey: key,
+                            paramValue: value.toString(),
+                            unit: 'VND',
+                            description: `Rent setting: ${key}`
+                        });
+                    } catch (createError) {
+                        console.error(`Failed to save setting ${key}:`, createError);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to save settings to API:', error);
+            // Fallback to localStorage
+            localStorage.setItem('mt_rent_settings', JSON.stringify(this.state.settings));
+        }
     },
 
     bindEvents() {
@@ -158,7 +238,7 @@ window.RentManager = {
         document.getElementById('rentSettingsModal').classList.remove('active');
     },
 
-    updateSettings() {
+    async updateSettings() {
         this.state.settings = {
             defaultBase: App.parseCurrency(document.getElementById('defaultBase').value),
             priceElec: App.parseCurrency(document.getElementById('priceElec').value),
@@ -166,12 +246,12 @@ window.RentManager = {
             defaultWifi: App.parseCurrency(document.getElementById('defaultWifi').value),
             defaultGarbage: App.parseCurrency(document.getElementById('defaultGarbage').value)
         };
-        this.saveSettings();
+        await this.saveSettings();
         this.closeSettings();
         App.showToast('Đã cập nhật cấu hình');
     },
 
-    saveBill() {
+    async saveBill() {
         let month = document.getElementById('rentMonth').value;
         const base = App.parseCurrency(document.getElementById('rentBase').value);
         const wifi = App.parseCurrency(document.getElementById('rentWifi').value);
@@ -193,108 +273,199 @@ window.RentManager = {
         const total = base + wifi + garbage + other + elecTotal + waterTotal;
 
         const billData = {
-            id: this.state.editingId || App.generateId(),
-            month,
-            base,
-            wifi,
-            garbage,
-            other,
-            elecUsage,
-            waterUsage,
-            elecPrice: this.state.settings.priceElec,
-            waterPrice: this.state.settings.priceWater,
-            elecTotal,
-            waterTotal,
-            total
+            month: month,
+            base: base,
+            wifi: wifi,
+            garbage: garbage,
+            other: other,
+            elecUsage: elecUsage,
+            waterUsage: waterUsage,
+            elecTotal: elecTotal,
+            waterTotal: waterTotal,
+            total: total,
+            status: 'PAID'
         };
 
-        if (this.state.editingId) {
-            const index = App.state.rentHistory.findIndex(b => b.id === this.state.editingId);
-            App.state.rentHistory[index] = billData;
-        } else {
-            App.state.rentHistory.push(billData);
-        }
+        try {
+            if (this.state.editingId) {
+                // Update existing bill
+                const updated = await ApiService.rent.update(this.state.editingId, billData);
+                const index = App.state.rentHistory.findIndex(b => b.id === this.state.editingId);
+                if (index !== -1) {
+                    App.state.rentHistory[index] = updated;
+                }
+                App.showToast('Đã cập nhật hoá đơn');
+            } else {
+                // Create new bill
+                const created = await ApiService.rent.create(billData);
+                App.state.rentHistory.push(created);
+                App.showToast('Đã lưu hoá đơn mới');
+            }
 
-        App.saveState();
-        this.closeModal();
-        this.updateYearFilter();
-        this.render();
-        App.showToast('Đã lưu hoá đơn');
-    },
-
-    deleteBill(id) {
-        if (confirm('Bạn có chắc muốn xoá hoá đơn này?')) {
-            App.state.rentHistory = App.state.rentHistory.filter(b => b.id !== id);
-            App.saveState();
+            // Update localStorage as backup
+            localStorage.setItem('mt_rent_history', JSON.stringify(App.state.rentHistory));
+            
+            this.closeModal();
             this.updateYearFilter();
             this.render();
-            App.showToast('Đã xoá hoá đơn');
+        } catch (error) {
+            console.error('Failed to save bill:', error);
+            App.showToast('Lỗi khi lưu hoá đơn', true);
+            
+            // Fallback to localStorage
+            if (this.state.editingId) {
+                const index = App.state.rentHistory.findIndex(b => b.id === this.state.editingId);
+                if (index !== -1) {
+                    App.state.rentHistory[index] = { ...App.state.rentHistory[index], ...billData };
+                }
+            } else {
+                const newBill = {
+                    id: Date.now(),
+                    ...billData
+                };
+                App.state.rentHistory.push(newBill);
+            }
+            localStorage.setItem('mt_rent_history', JSON.stringify(App.state.rentHistory));
+            this.closeModal();
+            this.updateYearFilter();
+            this.render();
+        }
+    },
+
+    async deleteBill(id) {
+        if (!confirm('Bạn có chắc muốn xóa hoá đơn này?')) return;
+
+        try {
+            await ApiService.rent.delete(id);
+            App.state.rentHistory = App.state.rentHistory.filter(b => b.id !== id);
+            
+            // Update localStorage as backup
+            localStorage.setItem('mt_rent_history', JSON.stringify(App.state.rentHistory));
+            
+            App.showToast('Đã xóa hoá đơn');
+            this.updateYearFilter();
+            this.render();
+        } catch (error) {
+            console.error('Failed to delete bill:', error);
+            App.showToast('Lỗi khi xóa hoá đơn', true);
+            
+            // Fallback to localStorage
+            App.state.rentHistory = App.state.rentHistory.filter(b => b.id !== id);
+            localStorage.setItem('mt_rent_history', JSON.stringify(App.state.rentHistory));
+            this.updateYearFilter();
+            this.render();
         }
     },
 
     render() {
-        const container = document.getElementById('rentList');
-        const summary = document.getElementById('rentYearSummary');
+        const list = document.getElementById('rentList');
         const history = App.state.rentHistory || [];
-
-        // Filter by year
-        const filtered = history.filter(b => b.month.startsWith(this.state.currentYear));
-
-        // Calculate year total
-        const yearTotal = filtered.reduce((acc, curr) => acc + curr.total, 0);
-        summary.innerHTML = `
-            <div class="summary-year-label">Tổng tiền nhà năm ${this.state.currentYear}</div>
-            <div class="summary-year-value">${App.formatCurrency(yearTotal)}</div>
-        `;
+        
+        // Filter by year and sort
+        let filtered = history.filter(b => b.month.split('-')[0] === this.state.currentYear);
+        filtered.sort((a, b) => {
+            const comparison = a.month.localeCompare(b.month);
+            return this.state.sortOrder === 'asc' ? comparison : -comparison;
+        });
 
         if (filtered.length === 0) {
-            container.innerHTML = '<div class="no-data">Không có dữ liệu hoá đơn cho năm này.</div>';
+            list.innerHTML = `
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <h3>Chưa có hoá đơn nào</h3>
+                    <p>Nhấn "Ghi hoá đơn" để thêm hoá đơn tiền nhà mới.</p>
+                </div>
+            `;
+            document.getElementById('rentYearSummary').innerHTML = '';
             return;
         }
 
-        // Sort by month
-        if (this.state.sortOrder === 'asc') {
-            filtered.sort((a, b) => a.month.localeCompare(b.month));
-        } else {
-            filtered.sort((a, b) => b.month.localeCompare(a.month));
-        }
+        // Calculate yearly summary
+        let yearlyTotal = 0;
+        let yearlyBase = 0;
+        let yearlyElec = 0;
+        let yearlyWater = 0;
 
-        container.innerHTML = filtered.map(b => `
-            <div class="rent-bill-card">
-                <div class="bill-header" style="margin-bottom: 12px; padding-bottom: 10px;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="bill-month" style="font-size: 1.1rem;">Tháng ${b.month.split('-')[1]}/${b.month.split('-')[0]}</div>
-                        <div class="bill-total" style="font-size: 1.2rem;">${App.formatCurrency(b.total)}</div>
+        filtered.forEach(bill => {
+            yearlyTotal += bill.total;
+            yearlyBase += bill.base;
+            yearlyElec += bill.elecTotal;
+            yearlyWater += bill.waterTotal;
+        });
+
+        document.getElementById('rentYearSummary').innerHTML = `
+            <div class="summary-card">
+                <div class="summary-item">
+                    <span class="summary-label">Tổng cộng năm ${this.state.currentYear}</span>
+                    <span class="summary-value">${App.formatCurrency(yearlyTotal)}</span>
+                </div>
+                <div class="summary-breakdown">
+                    <div class="summary-breakdown-item">
+                        <span>Tiền phòng</span>
+                        <span>${App.formatCurrency(yearlyBase)}</span>
                     </div>
-                    <div class="txn-actions">
-                        <button class="btn-icon" onclick="RentManager.openModal('${b.id}')" title="Sửa">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <button class="btn-icon btn-delete" onclick="RentManager.deleteBill('${b.id}')" title="Xoá">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
+                    <div class="summary-breakdown-item">
+                        <span>Điện</span>
+                        <span>${App.formatCurrency(yearlyElec)}</span>
+                    </div>
+                    <div class="summary-breakdown-item">
+                        <span>Nước</span>
+                        <span>${App.formatCurrency(yearlyWater)}</span>
                     </div>
                 </div>
-                <div class="bill-grid" style="gap: 10px;">
-                    <div class="bill-item">
-                        <span class="bill-label">Tiền phòng</span>
-                        <span class="bill-value" style="font-size: 0.9rem;">${App.formatCurrency(b.base)}</span>
+            </div>
+        `;
+
+        list.innerHTML = filtered.map(bill => `
+            <div class="rent-card">
+                <div class="rent-header">
+                    <div class="rent-month">${bill.month}</div>
+                    <div class="rent-total">${App.formatCurrency(bill.total)}</div>
+                </div>
+                <div class="rent-details">
+                    <div class="rent-detail-item">
+                        <span>Tiền phòng</span>
+                        <span>${App.formatCurrency(bill.base)}</span>
                     </div>
-                    <div class="bill-item">
-                        <span class="bill-label">Điện</span>
-                        <span class="bill-value" style="font-size: 0.9rem;">${App.formatCurrency(b.elecTotal)}</span>
-                        <span class="bill-subtext">${b.elecUsage} kWh</span>
+                    <div class="rent-detail-item">
+                        <span>WiFi</span>
+                        <span>${App.formatCurrency(bill.wifi)}</span>
                     </div>
-                    <div class="bill-item">
-                        <span class="bill-label">Nước</span>
-                        <span class="bill-value" style="font-size: 0.9rem;">${App.formatCurrency(b.waterTotal)}</span>
-                        <span class="bill-subtext">${b.waterUsage} m³</span>
+                    <div class="rent-detail-item">
+                        <span>Rác</span>
+                        <span>${App.formatCurrency(bill.garbage)}</span>
                     </div>
-                    <div class="bill-item">
-                        <span class="bill-label">Dịch vụ</span>
-                        <span class="bill-value" style="font-size: 0.9rem;">${App.formatCurrency(b.wifi + b.garbage + (b.other || 0))}</span>
-                        <div class="bill-subtext">Wifi: ${App.formatCurrency(b.wifi)}; Rác: ${App.formatCurrency(b.garbage)}</div>
+                    ${bill.other ? `
+                    <div class="rent-detail-item">
+                        <span>Khác</span>
+                        <span>${App.formatCurrency(bill.other)}</span>
                     </div>
+                    ` : ''}
+                    <div class="rent-detail-item">
+                        <span>Điện (${bill.elecUsage} kWh)</span>
+                        <span>${App.formatCurrency(bill.elecTotal)}</span>
+                    </div>
+                    <div class="rent-detail-item">
+                        <span>Nước (${bill.waterUsage} m³)</span>
+                        <span>${App.formatCurrency(bill.waterTotal)}</span>
+                    </div>
+                </div>
+                <div class="rent-actions">
+                    <button class="btn-icon" onclick="RentManager.openModal(${bill.id})" title="Chỉnh sửa">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                    <button class="btn-icon" onclick="RentManager.deleteBill(${bill.id})" title="Xóa">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
         `).join('');

@@ -29,6 +29,11 @@ window.ApiService = {
                 throw new Error(`API Error: ${response.status} - ${error}`);
             }
 
+            // Handle 204 No Content responses (DELETE operations)
+            if (response.status === 204) {
+                return null;
+            }
+
             return await response.json();
         } catch (error) {
             console.error('API request failed:', error);
@@ -68,6 +73,90 @@ window.ApiService = {
         async delete(id) {
             return await ApiService.request(`/categories/${id}`, {
                 method: 'DELETE'
+            });
+        }
+    },
+
+    // Config Param API methods
+    configParam: {
+        async getAll() {
+            return await ApiService.request('/config-params');
+        },
+
+        async search(paramKey) {
+            return await ApiService.request(`/config-params/search?paramKey=${encodeURIComponent(paramKey)}`);
+        },
+
+        async getById(id) {
+            return await ApiService.request(`/config-params/${id}`);
+        },
+
+        async getByKey(paramKey) {
+            return await ApiService.request(`/config-params/key/${encodeURIComponent(paramKey)}`);
+        },
+
+        async create(configData) {
+            return await ApiService.request('/config-params', {
+                method: 'POST',
+                body: JSON.stringify(configData)
+            });
+        },
+
+        async update(id, configData) {
+            return await ApiService.request(`/config-params/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(configData)
+            });
+        },
+
+        async delete(id) {
+            return await ApiService.request(`/config-params/${id}`, {
+                method: 'DELETE'
+            });
+        }
+    },
+
+    // Rent API methods
+    rent: {
+        async getAll() {
+            return await ApiService.request('/rents');
+        },
+
+        async getByStatus(status) {
+            return await ApiService.request(`/rents/status/${status}`);
+        },
+
+        async getByDateRange(startDate, endDate) {
+            return await ApiService.request(`/rents/date-range?startDate=${startDate}&endDate=${endDate}`);
+        },
+
+        async getById(id) {
+            return await ApiService.request(`/rents/${id}`);
+        },
+
+        async create(rentData) {
+            return await ApiService.request('/rents', {
+                method: 'POST',
+                body: JSON.stringify(rentData)
+            });
+        },
+
+        async update(id, rentData) {
+            return await ApiService.request(`/rents/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(rentData)
+            });
+        },
+
+        async delete(id) {
+            return await ApiService.request(`/rents/${id}`, {
+                method: 'DELETE'
+            });
+        },
+
+        async updateStatus(id, status) {
+            return await ApiService.request(`/rents/${id}/status?status=${status}`, {
+                method: 'PATCH'
             });
         }
     }

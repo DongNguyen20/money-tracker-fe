@@ -191,7 +191,8 @@ window.CategoryManager = {
         if (confirm('Bạn có chắc muốn xoá danh mục này?')) {
             try {
                 await ApiService.category.delete(parseInt(id));
-                App.state.categories = App.state.categories.filter(c => c.id !== id);
+                // Reload categories from backend to ensure sync
+                await this.loadCategories();
                 App.showToast('Đã xoá danh mục');
                 this.render();
             } catch (error) {

@@ -27,7 +27,8 @@ window.App = {
         const storedTransactions = localStorage.getItem('mt_transactions');
         const storedCategories = localStorage.getItem('mt_categories');
         const storedStocks = localStorage.getItem('mt_stocks');
-        const storedRent = localStorage.getItem('mt_rent_history');
+        
+        // Note: rent data is now loaded from backend API in RentManager.init()
 
         if (storedCategories) {
             this.state.categories = JSON.parse(storedCategories);
@@ -48,27 +49,17 @@ window.App = {
         if (storedStockCash) {
             this.state.stockCash = JSON.parse(storedStockCash);
         }
-
-        if (storedRent) {
-            this.state.rentHistory = JSON.parse(storedRent);
-        }
     },
 
     saveState() {
         this.saveTransactions();
         this.saveStocks();
-        this.saveRent();
     },
 
     saveStocks() {
         localStorage.setItem('mt_stocks', JSON.stringify(this.state.stocks));
         localStorage.setItem('mt_stock_cash', JSON.stringify(this.state.stockCash));
         if (this.state.currentView === 'stocks' && window.StockManager) StockManager.render();
-    },
-
-    saveRent() {
-        localStorage.setItem('mt_rent_history', JSON.stringify(this.state.rentHistory));
-        if (this.state.currentView === 'rent' && window.RentManager) RentManager.render();
     },
 
     saveTransactions() {
@@ -111,7 +102,6 @@ window.App = {
 
         if (fab) fab.addEventListener('click', openTxnModal);
         if (fabMobile) fabMobile.addEventListener('click', openTxnModal);
-
     },
 
     switchView(viewId) {
@@ -155,7 +145,7 @@ window.App = {
 
             mainContent.innerHTML = `<section class="view animate-fade-in" id="view${viewId.charAt(0).toUpperCase() + viewId.slice(1)}">${html}</section>`;
             
-            if (manager.init) manager.init();
+            if (manager.init) await manager.init();
             if (manager.render) manager.render();
         }
 
@@ -223,25 +213,17 @@ window.App = {
                     if (s.type === 'buy') netQty += s.quantity;
                     else netQty -= s.quantity;
                 });
-                const price = currentPrices[ticker] || 0;
-                stockAssets += (netQty * price);
+                
+                if (currentPrices[ticker] && netQty > 0) {
+                    stockAssets += currentPrices[ticker] * netQty;
+                }
             });
         }
 
-        this.state.balance = totalBalance + stockAssets;
+        totalBalance += stockAssets;
 
-        // Update UI
-        const elIncome = document.getElementById('totalIncome');
-        const elExpense = document.getElementById('totalExpense');
-        const elSaving = document.getElementById('totalSaving');
-        const elBalance = document.getElementById('totalBalance');
-        const elSidebarBalance = document.getElementById('sidebarBalance');
-
-        if (elIncome) elIncome.textContent = this.formatCurrency(income);
-        if (elExpense) elExpense.textContent = this.formatCurrency(expense);
-        if (elSaving) elSaving.textContent = this.formatCurrency(saving);
-        if (elBalance) elBalance.textContent = this.formatCurrency(totalBalance + stockAssets);
-        if (elSidebarBalance) elSidebarBalance.textContent = this.formatCurrency(totalBalance + stockAssets);
+        const balanceEl = document.getElementById('sidebarBalance');
+        if (balanceEl) balanceEl.textContent = this.formatCurrency(totalBalance);
     },
 
     formatCurrency(amount) {
@@ -254,30 +236,19 @@ window.App = {
 
     parseCurrency(str) {
         if (!str) return 0;
-        return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
-    },
-
-    generateId() {
-        return Math.random().toString(36).substr(2, 9);
+        return parseInt(str.replace(/\D/g, '')) || 0;
     },
 
     showToast(message, type = 'success') {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.textContent = message;
-        container.appendChild(toast);
+        document.body.appendChild(toast);
 
+        setTimeout(() => toast.classList.add('show'), 10);
         setTimeout(() => {
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }, 100);
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 };
-
-// Initialize App on load
-window.addEventListener('load', () => App.init());

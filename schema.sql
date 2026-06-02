@@ -329,6 +329,38 @@ INSERT INTO categories (user_id, name, icon, type, color, sort_order, is_system)
 INSERT INTO rent_settings (user_id) VALUES
     ('019723a0-0000-7000-8000-000000000001');
 
+-- Dữ liệu mẫu cho rent và rent_detail
+-- Lưu ý: Backend sử dụng bảng rent và rent_detail (khác với rent_bills trong schema)
+
+-- Rent mẫu
+INSERT INTO rent (date, name, total_amount, date_of_origin, payment_date, status, notes, created_at, updated_at) VALUES
+    ('2025-01-01', 'Tiền nhà tháng 1/2025', 3500000.00, '2025-01-01', '2025-01-05', 'PAID', 'Đã thanh toán đầy đủ', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('2025-02-01', 'Tiền nhà tháng 2/2025', 3600000.00, '2025-02-01', '2025-02-05', 'PAID', 'Đã thanh toán đầy đủ', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('2025-03-01', 'Tiền nhà tháng 3/2025', 3400000.00, '2025-03-01', '2025-03-10', 'PAID', 'Giảm do đi công tác', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('2025-04-01', 'Tiền nhà tháng 4/2025', 3500000.00, '2025-04-01', NULL, 'PENDING', 'Chưa thanh toán', CURRENT_TIMESTAMP, NULL),
+    ('2025-05-01', 'Tiền nhà tháng 5/2025', 3700000.00, '2025-05-01', NULL, 'PENDING', 'Chưa thanh toán', CURRENT_TIMESTAMP, NULL);
+
+-- RentDetail mẫu cho từng rent
+-- Rent id = 1 (Tháng 1/2025)
+INSERT INTO rent_detail (rent_id, base_amount, wifi_amount, water_amount, electricity_amount, other_amount, kwh_consumed, m3_consumed, notes, created_at, updated_at) VALUES
+    (1, 2200000.00, 200000.00, 60000.00, 540000.00, 50000.00, 120, 3, 'Tiền điện: 120kWh x 4500đ/kWh', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Rent id = 2 (Tháng 2/2025)
+INSERT INTO rent_detail (rent_id, base_amount, wifi_amount, water_amount, electricity_amount, other_amount, kwh_consumed, m3_consumed, notes, created_at, updated_at) VALUES
+    (2, 2200000.00, 200000.00, 80000.00, 720000.00, 40000.00, 160, 4, 'Tiền điện: 160kWh x 4500đ/kWh', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Rent id = 3 (Tháng 3/2025)
+INSERT INTO rent_detail (rent_id, base_amount, wifi_amount, water_amount, electricity_amount, other_amount, kwh_consumed, m3_consumed, notes, created_at, updated_at) VALUES
+    (3, 2200000.00, 200000.00, 50000.00, 450000.00, 30000.00, 100, 2.5, 'Giảm điện do đi công tác 1 tuần', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Rent id = 4 (Tháng 4/2025)
+INSERT INTO rent_detail (rent_id, base_amount, wifi_amount, water_amount, electricity_amount, other_amount, kwh_consumed, m3_consumed, notes, created_at, updated_at) VALUES
+    (4, 2200000.00, 200000.00, 70000.00, 630000.00, 40000.00, 140, 3.5, NULL, CURRENT_TIMESTAMP, NULL);
+
+-- Rent id = 5 (Tháng 5/2025)
+INSERT INTO rent_detail (rent_id, base_amount, wifi_amount, water_amount, electricity_amount, other_amount, kwh_consumed, m3_consumed, notes, created_at, updated_at) VALUES
+    (5, 2200000.00, 200000.00, 75000.00, 675000.00, 50000.00, 150, 3.75, NULL, CURRENT_TIMESTAMP, NULL);
+
 COMMIT;
 
 -- =============================================================================
