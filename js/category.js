@@ -14,6 +14,32 @@ window.CategoryManager = {
     init() {
         this.initEventListeners();
         this.initEmojiPicker();
+        this.loadCategories();
+    },
+
+    async loadCategories() {
+        try {
+            const categories = await ApiService.category.getAll();
+            // Convert API response to frontend format
+            App.state.categories = categories.map(cat => ({
+                id: cat.id.toString(),
+                code: cat.code,
+                name: cat.name,
+                icon: cat.icon || '📌',
+                type: cat.type.toLowerCase(),
+                color: cat.color || this.getTypeColor(cat.type.toLowerCase())
+            }));
+            this.render();
+        } catch (error) {
+            console.error('Failed to load categories:', error);
+            App.showToast('Không thể tải danh mục từ server', 'error');
+            // Fallback to localStorage if API fails
+            const storedCategories = localStorage.getItem('mt_categories');
+            if (storedCategories) {
+                App.state.categories = JSON.parse(storedCategories);
+            }
+            this.render();
+        }
     },
 
     initEventListeners() {
@@ -96,31 +122,56 @@ window.CategoryManager = {
         document.getElementById('catEmojiGrid').style.display = 'none';
     },
 
-    saveCategory() {
+    async saveCategory() {
         const name = document.getElementById('catName').value;
         const type = document.querySelector('#catTypeSelector .type-btn.active').dataset.type;
         const id = document.getElementById('catEditId').value;
 
+        // Generate code from name (uppercase, no spaces, max 20 chars)
+        const code = name.toUpperCase().replace(/\s+/g, '_').substring(0, 20);
+
         const catData = {
-            id: id || App.generateId(),
-            name,
+            code: code,
+            name: name,
             icon: this.state.selectedEmoji,
-            type,
+            type: type.toUpperCase(), // Backend expects INCOME, EXPENSE, SAVING
             color: this.getTypeColor(type)
         };
 
-        if (id) {
-            const index = App.state.categories.findIndex(c => c.id === id);
-            App.state.categories[index] = catData;
-            App.showToast('Đã cập nhật danh mục');
-        } else {
-            App.state.categories.push(catData);
-            App.showToast('Đã thêm danh mục mới');
-        }
+        try {
+            if (id) {
+                // Update existing category
+                const updated = await ApiService.category.update(parseInt(id), catData);
+                const index = App.state.categories.findIndex(c => c.id === id);
+                App.state.categories[index] = {
+                    id: updated.id.toString(),
+                    code: updated.code,
+                    name: updated.name,
+                    icon: updated.icon,
+                    type: updated.type.toLowerCase(),
+                    color: updated.color
+                };
+                App.showToast('Đã cập nhật danh mục');
+            } else {
+                // Create new category
+                const created = await ApiService.category.create(catData);
+                App.state.categories.push({
+                    id: created.id.toString(),
+                    code: created.code,
+                    name: created.name,
+                    icon: created.icon,
+                    type: created.type.toLowerCase(),
+                    color: created.color
+                });
+                App.showToast('Đã thêm danh mục mới');
+            }
 
-        App.saveCategories();
-        this.closeModal();
-        this.render();
+            this.closeModal();
+            this.render();
+        } catch (error) {
+            console.error('Failed to save category:', error);
+            App.showToast('Không thể lưu danh mục', 'error');
+        }
     },
 
     getTypeColor(type) {
@@ -129,7 +180,7 @@ window.CategoryManager = {
         return '#6366f1';
     },
 
-    deleteCategory(id) {
+    async deleteCategory(id) {
         // Check if transactions exist for this category
         const hasTxns = App.state.transactions.some(t => t.categoryId === id);
         if (hasTxns) {
@@ -138,10 +189,15 @@ window.CategoryManager = {
         }
 
         if (confirm('Bạn có chắc muốn xoá danh mục này?')) {
-            App.state.categories = App.state.categories.filter(c => c.id !== id);
-            App.saveCategories();
-            App.showToast('Đã xoá danh mục');
-            this.render();
+            try {
+                await ApiService.category.delete(parseInt(id));
+                App.state.categories = App.state.categories.filter(c => c.id !== id);
+                App.showToast('Đã xoá danh mục');
+                this.render();
+            } catch (error) {
+                console.error('Failed to delete category:', error);
+                App.showToast('Không thể xoá danh mục', 'error');
+            }
         }
     },
 
