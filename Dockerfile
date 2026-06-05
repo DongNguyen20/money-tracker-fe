@@ -10,5 +10,5 @@ COPY . /usr/share/nginx/html/
 # Expose port 80 để truy cập
 EXPOSE 80
 
-# Chạy Nginx ở chế độ background
-CMD ["nginx", "-g", "daemon off;"]
+# Chạy Nginx ở chế độ foreground sau khi đã thay thế API_URL
+CMD ["/bin/sh", "-c", "sed -i \"s|API_URL_PLACEHOLDER|${API_URL:-http://localhost:8081/api/v1}|g\" /usr/share/nginx/html/env.js && nginx -g 'daemon off;'"]
