@@ -4,7 +4,6 @@
 
 window.ApiService = {
     baseUrl: 'http://localhost:8081/api/v1',
-    apiKey: 'dev-api-key-12345', // API key that works with backend
 
     async request(endpoint, options = {}) {
         const url = `${this.baseUrl}${endpoint}`;
@@ -12,11 +11,6 @@ window.ApiService = {
             'Content-Type': 'application/json',
             ...options.headers
         };
-
-        // Only add API key if it's configured
-        if (this.apiKey) {
-            headers['X-API-Key'] = this.apiKey;
-        }
 
         try {
             const response = await fetch(url, {
@@ -107,6 +101,21 @@ window.ApiService = {
                 method: 'PUT',
                 body: JSON.stringify(configData)
             });
+        },
+
+        async updateByKey(paramKey, configData) {
+            try {
+                const existing = await ApiService.request(`/config-params/key/${encodeURIComponent(paramKey)}`);
+                return await ApiService.request(`/config-params/${existing.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(configData)
+                });
+            } catch (error) {
+                return await ApiService.request('/config-params', {
+                    method: 'POST',
+                    body: JSON.stringify({ ...configData, paramKey })
+                });
+            }
         },
 
         async delete(id) {

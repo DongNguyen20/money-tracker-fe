@@ -178,6 +178,15 @@
     <script src="js/dashboard.js"></script>
     <script src="js/stocks.js"></script>
     <script src="js/rent.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.App && window.App.init) {
+                window.App.init();
+            } else {
+                console.error('App is not defined or init method not found');
+            }
+        });
+    </script>
 </body>
 
 </html>
