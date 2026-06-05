@@ -3,7 +3,7 @@
  */
 
 window.ApiService = {
-    baseUrl: 'http://localhost:8081/api/v1',
+    baseUrl: (window.env && window.env.API_URL) || 'http://localhost:8081/api/v1',
 
     async request(endpoint, options = {}) {
         const url = `${this.baseUrl}${endpoint}`;
