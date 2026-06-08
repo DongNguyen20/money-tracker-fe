@@ -16,31 +16,49 @@ window.App = {
         balance: 0
     },
 
-    init() {
-        this.loadData();
+    async init() {
+        await this.loadData();
         this.initEventListeners();
         this.renderSidebarDate();
-        this.renderView();
+        await this.renderView();
     },
 
-    loadData() {
-        const storedTransactions = localStorage.getItem('mt_transactions');
-        const storedCategories = localStorage.getItem('mt_categories');
+    async loadData() {
+        // Load categories from API
+        try {
+            const categories = await ApiService.category.getAll();
+            this.state.categories = categories.map(cat => ({
+                id: cat.id.toString(),
+                code: cat.code,
+                name: cat.name,
+                icon: cat.icon || '📌',
+                type: cat.type.toLowerCase(),
+                color: cat.color || '#666'
+            }));
+        } catch (error) {
+            console.error('Failed to load categories in core App:', error);
+            const storedCategories = localStorage.getItem('mt_categories');
+            if (storedCategories) {
+                this.state.categories = JSON.parse(storedCategories);
+            } else {
+                this.state.categories = this.getDefaultCategories();
+                this.saveCategories();
+            }
+        }
+
+        // Load transactions from API (using page size 1000 to get initial set for stats)
+        try {
+            const res = await ApiService.transaction.getAll({ size: 1000 });
+            this.state.transactions = res.content || [];
+        } catch (error) {
+            console.error('Failed to load transactions in core App:', error);
+            const storedTransactions = localStorage.getItem('mt_transactions');
+            if (storedTransactions) {
+                this.state.transactions = JSON.parse(storedTransactions);
+            }
+        }
+
         const storedStocks = localStorage.getItem('mt_stocks');
-        
-        // Note: rent data is now loaded from backend API in RentManager.init()
-
-        if (storedCategories) {
-            this.state.categories = JSON.parse(storedCategories);
-        } else {
-            this.state.categories = this.getDefaultCategories();
-            this.saveCategories();
-        }
-
-        if (storedTransactions) {
-            this.state.transactions = JSON.parse(storedTransactions);
-        }
-
         if (storedStocks) {
             this.state.stocks = JSON.parse(storedStocks);
         }
