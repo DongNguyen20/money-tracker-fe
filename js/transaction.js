@@ -12,10 +12,29 @@ window.TransactionManager = {
     },
 
 
-    init() {
+    async init() {
         this.initEventListeners();
+        await this.loadTransactions();
         // Set default date after a small delay to ensure DOM is ready
         setTimeout(() => this.initDefaultDate(), 100);
+    },
+
+    async loadTransactions() {
+        try {
+            const res = await ApiService.transaction.getAll({
+                type: this.state.filterType,
+                categoryId: this.state.filterCategory,
+                page: this.state.currentPage,
+                size: 1000 // Grab enough to sort/paginate locally for standard user or handle via server.
+            });
+            App.state.transactions = res.content || [];
+        } catch (error) {
+            console.error('Failed to load transactions from API:', error);
+            const stored = localStorage.getItem('mt_transactions');
+            if (stored) {
+                App.state.transactions = JSON.parse(stored);
+            }
+        }
     },
 
     initDefaultDate() {
@@ -45,12 +64,13 @@ window.TransactionManager = {
         document.getElementById('txnModalClose').addEventListener('click', () => this.closeModal());
         document.getElementById('txnCancel').addEventListener('click', () => this.closeModal());
 
-        document.getElementById('txnFilterTabs').addEventListener('click', (e) => {
+        document.getElementById('txnFilterTabs').addEventListener('click', async (e) => {
             const tab = e.target.closest('.filter-tab');
             if (tab) {
                 document.querySelectorAll('#txnFilterTabs .filter-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 this.state.filterType = tab.dataset.type;
+                await this.loadTransactions();
                 this.render();
             }
         });
@@ -77,15 +97,17 @@ window.TransactionManager = {
             this.saveTransaction();
         });
 
-        document.getElementById('txnCategoryFilter').addEventListener('change', (e) => {
+        document.getElementById('txnCategoryFilter').addEventListener('change', async (e) => {
             this.state.filterCategory = e.target.value;
+            await this.loadTransactions();
             this.render();
         });
 
         const dateFrom = document.getElementById('txnDateFrom');
         const dateTo = document.getElementById('txnDateTo');
-        [dateFrom, dateTo].forEach(el => el.addEventListener('change', () => {
+        [dateFrom, dateTo].forEach(el => el.addEventListener('change', async () => {
             this.state.currentPage = 1;
+            await this.loadTransactions();
             this.render();
         }));
 
@@ -134,7 +156,7 @@ window.TransactionManager = {
         dateInput.setAttribute('formnovalidate', '');
 
         if (id) {
-            const txn = App.state.transactions.find(t => t.id === id);
+            const txn = App.state.transactions.find(t => t.id == id);
             title.textContent = 'Chỉnh sửa giao dịch';
             document.getElementById('txnEditId').value = id;
             document.getElementById('txnAmount').value = new Intl.NumberFormat('vi-VN').format(txn.amount);
@@ -189,7 +211,7 @@ window.TransactionManager = {
             App.state.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
     },
 
-    saveTransaction() {
+    async saveTransaction() {
         console.log('saveTransaction called'); // Debug
 
         // Ensure date input has no validation before saving
@@ -228,37 +250,68 @@ window.TransactionManager = {
         console.log('Final date:', date); // Debug
 
         const txnData = {
-            id: id || App.generateId(),
             amount,
-            type,
+            type: type.toUpperCase(), // Backend expects INCOME, EXPENSE, SAVING
             categoryId,
             note: note || App.state.categories.find(c => c.id === categoryId).name,
-            date,
-            createdAt: new Date().toISOString()
+            date
         };
 
-        console.log('Transaction data:', txnData); // Debug
+        try {
+            if (id) {
+                // Update transaction on Backend
+                const updated = await ApiService.transaction.update(id, txnData);
+                const index = App.state.transactions.findIndex(t => t.id == id);
+                if (index !== -1) {
+                    App.state.transactions[index] = {
+                        ...updated,
+                        type: updated.type.toLowerCase() // Convert back to FE format
+                    };
+                }
+                App.showToast('Đã cập nhật giao dịch');
+            } else {
+                // Create transaction on Backend
+                const created = await ApiService.transaction.create(txnData);
+                App.state.transactions.push({
+                    ...created,
+                    type: created.type.toLowerCase() // Convert back to FE format
+                });
+                App.showToast('Đã thêm giao dịch thành công');
+            }
 
-        if (id) {
-            const index = App.state.transactions.findIndex(t => t.id === id);
-            App.state.transactions[index] = txnData;
-            App.showToast('Đã cập nhật giao dịch');
-        } else {
-            App.state.transactions.push(txnData);
-            App.showToast('Đã thêm giao dịch thành công');
+            // Save to localStorage as backup
+            localStorage.setItem('mt_transactions', JSON.stringify(App.state.transactions));
+            App.updateGlobalStats();
+
+            // Refresh dashboards if active
+            if (App.state.currentView === 'dashboard' && window.DashboardManager) DashboardManager.render();
+
+            this.closeModal();
+            this.render();
+        } catch (error) {
+            console.error('Failed to save transaction:', error);
+            App.showToast('Lỗi khi lưu giao dịch', 'error');
         }
-
-        App.saveTransactions();
-        this.closeModal();
-        this.render();
     },
 
-    deleteTransaction(id) {
+    async deleteTransaction(id) {
         if (confirm('Bạn có chắc muốn xoá giao dịch này?')) {
-            App.state.transactions = App.state.transactions.filter(t => t.id !== id);
-            App.saveTransactions();
-            App.showToast('Đã xoá giao dịch');
-            this.render();
+            try {
+                await ApiService.transaction.delete(id);
+                App.state.transactions = App.state.transactions.filter(t => t.id !== id);
+                
+                // Save backup
+                localStorage.setItem('mt_transactions', JSON.stringify(App.state.transactions));
+                App.updateGlobalStats();
+                
+                if (App.state.currentView === 'dashboard' && window.DashboardManager) DashboardManager.render();
+                
+                App.showToast('Đã xoá giao dịch');
+                this.render();
+            } catch (error) {
+                console.error('Failed to delete transaction:', error);
+                App.showToast('Lỗi khi xoá giao dịch', 'error');
+            }
         }
     },
 
@@ -325,7 +378,12 @@ window.TransactionManager = {
 
         list.innerHTML = Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).map(date => {
             const dateObj = new Date(date);
-            const dateStr = dateObj.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' });
+            const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+            const dayName = dayNames[dateObj.getDay()];
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            const dateStr = `${dayName} ${day}-${month}-${year}`;
 
             return `
                 <div class="txn-group">

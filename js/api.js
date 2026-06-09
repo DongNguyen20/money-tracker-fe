@@ -168,5 +168,45 @@ window.ApiService = {
                 method: 'PATCH'
             });
         }
+    },
+
+    // Transaction API methods
+    transaction: {
+        async getAll(params = {}) {
+            const queryParams = new URLSearchParams();
+            if (params.type && params.type !== 'all') queryParams.append('type', params.type);
+            if (params.categoryId && params.categoryId !== 'all') queryParams.append('categoryId', params.categoryId);
+            if (params.dateFrom) queryParams.append('dateFrom', params.dateFrom);
+            if (params.dateTo) queryParams.append('dateTo', params.dateTo);
+            queryParams.append('page', params.page || 1);
+            queryParams.append('size', params.size || 10);
+            
+            const queryStr = queryParams.toString() ? `?${queryParams.toString()}` : '';
+            return await ApiService.request(`/transactions${queryStr}`);
+        },
+
+        async getById(id) {
+            return await ApiService.request(`/transactions/${id}`);
+        },
+
+        async create(txnData) {
+            return await ApiService.request('/transactions', {
+                method: 'POST',
+                body: JSON.stringify(txnData)
+            });
+        },
+
+        async update(id, txnData) {
+            return await ApiService.request(`/transactions/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(txnData)
+            });
+        },
+
+        async delete(id) {
+            return await ApiService.request(`/transactions/${id}`, {
+                method: 'DELETE'
+            });
+        }
     }
 };

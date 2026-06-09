@@ -941,6 +941,12 @@ button, input, select {
     transition: var(--transition);
 }
 
+.input-group select option,
+select option {
+    background-color: var(--bg-modal);
+    color: var(--text-primary);
+}
+
 .input-group input:focus, .input-group select:focus {
     border-color: var(--accent-income);
     background: rgba(16, 185, 129, 0.05);
@@ -1390,12 +1396,14 @@ button, input, select {
 
 .emoji-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
     background: var(--bg-input);
-    padding: 12px;
+    padding: 10px;
     border-radius: var(--radius-md);
     margin-bottom: 20px;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .emoji-item {

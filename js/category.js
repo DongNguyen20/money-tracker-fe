@@ -76,7 +76,26 @@ window.CategoryManager = {
     },
 
     initEmojiPicker() {
-        const emojis = ['📌', '🍜', '🏠', '🚗', '💰', '🏦', '📈', '🎮', '📱', '🛍️', '💊', '📚', '🎁', '💵', '📦', '🎯', '👗', '🎬', '☕', '🥦', '🐖'];
+        const emojis = [
+            // General / Finance
+            '📌', '💰', '🏦', '📈', '💵', '💳', '💎', '💸', '🪙',
+            // Food & Drinks
+            '🍜', '☕', '🥦', '🍕', '🍔', '🍣', '🍰', '🍺', '🥤',
+            // Housing & Living
+            '🏠', '🛋️', '🔑', '🧹', '🔌', '🚿', '🪴',
+            // Transport & Travel
+            '🚗', '🚲', '🛵', '✈️', '⛽', '🎫', '🗺️', '🏨',
+            // Entertainment & Hobby
+            '🎮', '📺', '🎬', '🎵', '🎤', '📚', '🎨', '⚽', '🎯',
+            // Shopping & Fashion
+            '🛍️', '👗', '👕', '👠', '💄', '💍', '🎁',
+            // Medical & Health
+            '💊', '🩺', '🦷', '🏥', '🏋️', '💆',
+            // Technology & Work
+            '📱', '💻', '✉️', '📦', '🖊️', '💼',
+            // Other
+            '🐖', '🐾', '👶', '❤️', '🔥', '✨'
+        ];
         const grid = document.getElementById('catEmojiGrid');
         grid.innerHTML = emojis.map(e => `<span class="emoji-item">${e}</span>`).join('');
 
