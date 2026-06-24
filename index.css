@@ -1100,7 +1100,7 @@ select option {
     border-top: 1px solid var(--border-color);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     padding: 24px 20px 40px;
-    z-index: 999;
+    z-index: 1000;
     transition: bottom 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
 }
