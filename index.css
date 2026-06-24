@@ -1109,6 +1109,13 @@ select option {
     bottom: 0;
 }
 
+/* Hide mobile drawer on desktop */
+@media (min-width: 769px) {
+    .mobile-drawer {
+        display: none !important;
+    }
+}
+
 .mobile-drawer-header {
     display: flex;
     justify-content: space-between;
