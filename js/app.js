@@ -105,11 +105,14 @@ window.App = {
     },
 
     initEventListeners() {
-        // Navigation
-        document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(item => {
+        // Navigation (sidebar, mobile bottom nav, mobile drawer items)
+        document.querySelectorAll('.nav-item, .mobile-nav-item, .mobile-drawer-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 const view = e.currentTarget.getAttribute('data-view');
-                if (view) this.switchView(view);
+                if (view) {
+                    this.switchView(view);
+                    this.closeMobileDrawer();
+                }
             });
         });
 
@@ -120,12 +123,41 @@ window.App = {
 
         if (fab) fab.addEventListener('click', openTxnModal);
         if (fabMobile) fabMobile.addEventListener('click', openTxnModal);
+
+        // Mobile Bottom Drawer
+        const openDrawerBtn = document.getElementById('openMobileDrawerBtn');
+        const closeDrawerBtn = document.getElementById('closeMobileDrawerBtn');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+
+        if (openDrawerBtn) {
+            openDrawerBtn.addEventListener('click', () => this.openMobileDrawer());
+        }
+        if (closeDrawerBtn) {
+            closeDrawerBtn.addEventListener('click', () => this.closeMobileDrawer());
+        }
+        if (drawerOverlay) {
+            drawerOverlay.addEventListener('click', () => this.closeMobileDrawer());
+        }
+    },
+
+    openMobileDrawer() {
+        const drawer = document.getElementById('mobileDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+        if (drawer) drawer.classList.add('active');
+        if (overlay) overlay.classList.add('active');
+    },
+
+    closeMobileDrawer() {
+        const drawer = document.getElementById('mobileDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+        if (drawer) drawer.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
     },
 
     switchView(viewId) {
         this.state.currentView = viewId;
 
-        document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(item => {
+        document.querySelectorAll('.nav-item, .mobile-nav-item, .mobile-drawer-item').forEach(item => {
             item.classList.toggle('active', item.getAttribute('data-view') === viewId);
         });
 

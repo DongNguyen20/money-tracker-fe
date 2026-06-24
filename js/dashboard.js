@@ -197,7 +197,7 @@ window.DashboardManager = {
                         <span class="txn-name">${t.note}</span>
                         <span class="txn-category">${cat.name}</span>
                     </div>
-                    <div class="txn-amount ${t.type}" style="font-size: 0.9rem">${t.type === 'expense' ? '-' : '+'}${App.formatCurrency(t.amount)}</div>
+                    <div class="txn-amount ${t.type}" style="font-size: 0.9rem">${(t.type === 'expense' || t.type === 'saving') ? '-' : '+'}${App.formatCurrency(t.amount)}</div>
                 </div>
             `;
         }).join('');
