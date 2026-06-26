@@ -1,40 +1,42 @@
 /* ===== Money Tracker Design System ===== */
 :root {
-    /* Color Palette - Premium Dark Theme */
-    --bg-primary: #070913;
-    --bg-secondary: #0f111e;
-    --bg-card: rgba(255, 255, 255, 0.03);
-    --bg-card-hover: rgba(255, 255, 255, 0.07);
-    --bg-input: rgba(255, 255, 255, 0.06);
-    --bg-modal: #121424;
+    /* Color Palette - Premium Dark Theme (Fintech Optimized) */
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #111827;
+    --bg-card: rgba(255, 255, 255, 0.04);
+    --bg-card-hover: rgba(255, 255, 255, 0.08);
+    --bg-input: rgba(255, 255, 255, 0.08);
+    --bg-modal: rgba(17, 24, 39, 0.95);
     
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
     
-    /* Premium Gradients */
-    --accent-income: #10b981;
-    --accent-income-grad: linear-gradient(135deg, #10b981, #059669);
-    --accent-expense: #f43f5e;
-    --accent-expense-grad: linear-gradient(135deg, #f43f5e, #e11d48);
-    --accent-saving: #6366f1;
-    --accent-saving-grad: linear-gradient(135deg, #6366f1, #4f46e5);
-    --accent-primary: #10b981;
+    /* Premium Gradients (Fintech Optimized) */
+    --accent-income: #05d69e;
+    --accent-income-grad: linear-gradient(135deg, #05d69e, #00a67d);
+    --accent-expense: #ff6b8a;
+    --accent-expense-grad: linear-gradient(135deg, #ff6b8a, #e84560);
+    --accent-saving: #7c3aed;
+    --accent-saving-grad: linear-gradient(135deg, #7c3aed, #5b21b6);
+    --accent-primary: #05d69e;
     
-    --border-color: rgba(255, 255, 255, 0.08);
-    --border-active: rgba(16, 185, 129, 0.35);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --border-active: rgba(5, 214, 158, 0.4);
     
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 25px rgba(16, 185, 129, 0.12);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 25px 60px rgba(0, 0, 0, 0.6);
+    --shadow-glow: 0 0 30px rgba(5, 214, 158, 0.15);
+    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
     
     --radius-sm: 8px;
     --radius-md: 14px;
     --radius-lg: 20px;
     --radius-xl: 30px;
     
-    --transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ===== Reset & Base ===== */
@@ -45,11 +47,11 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
-    line-height: 1.5;
+    line-height: 1.6;
     overflow: hidden;
 }
 
@@ -144,20 +146,24 @@ button, input, select {
     color: var(--text-secondary);
     border-radius: var(--radius-md);
     cursor: pointer;
-    transition: var(--transition);
+    transition: all var(--transition);
     font-weight: 500;
     text-align: left;
+    position: relative;
+    overflow: hidden;
 }
 
 .nav-item:hover {
     background: var(--bg-card);
     color: var(--text-primary);
+    transform: translateX(4px);
 }
 
 .nav-item.active {
-    background: var(--bg-card);
+    background: rgba(5, 214, 158, 0.08);
     color: var(--accent-income);
     box-shadow: var(--shadow-glow);
+    border: 1px solid rgba(5, 214, 158, 0.2);
 }
 
 .sidebar-footer {
@@ -254,10 +260,10 @@ button, input, select {
     background: var(--bg-card-hover);
 }
 
-.card-income:hover { border-color: rgba(16, 185, 129, 0.3); box-shadow: 0 10px 25px rgba(16, 185, 129, 0.06); }
-.card-expense:hover { border-color: rgba(244, 63, 94, 0.3); box-shadow: 0 10px 25px rgba(244, 63, 94, 0.06); }
-.card-saving:hover { border-color: rgba(99, 102, 241, 0.3); box-shadow: 0 10px 25px rgba(99, 102, 241, 0.06); }
-.card-balance:hover { border-color: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 25px rgba(255, 255, 255, 0.04); }
+.card-income:hover { border-color: rgba(5, 214, 158, 0.4); box-shadow: 0 12px 30px rgba(5, 214, 158, 0.15); }
+.card-expense:hover { border-color: rgba(255, 107, 138, 0.4); box-shadow: 0 12px 30px rgba(255, 107, 138, 0.15); }
+.card-saving:hover { border-color: rgba(124, 58, 237, 0.4); box-shadow: 0 12px 30px rgba(124, 58, 237, 0.15); }
+.card-balance:hover { border-color: rgba(255, 255, 255, 0.2); box-shadow: 0 12px 30px rgba(255, 255, 255, 0.08); }
 
 .card-icon {
     width: 44px;
@@ -274,21 +280,24 @@ button, input, select {
     transform: scale(1.1);
 }
 
-.card-income .card-icon { background: rgba(16, 185, 129, 0.1); color: var(--accent-income); }
-.card-expense .card-icon { background: rgba(244, 63, 94, 0.1); color: var(--accent-expense); }
-.card-saving .card-icon { background: rgba(99, 102, 241, 0.1); color: var(--accent-saving); }
-.card-balance .card-icon { background: rgba(248, 250, 252, 0.1); color: var(--text-primary); }
+.card-income .card-icon { background: rgba(5, 214, 158, 0.15); color: var(--accent-income); backdrop-filter: blur(10px); }
+.card-expense .card-icon { background: rgba(255, 107, 138, 0.15); color: var(--accent-expense); backdrop-filter: blur(10px); }
+.card-saving .card-icon { background: rgba(124, 58, 237, 0.15); color: var(--accent-saving); backdrop-filter: blur(10px); }
+.card-balance .card-icon { background: rgba(248, 250, 252, 0.15); color: var(--text-primary); backdrop-filter: blur(10px); }
 
 .card-label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    font-weight: 500;
     color: var(--text-secondary);
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
 }
 
 .card-amount {
-    font-size: 1.5rem;
-    font-weight: 800;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 /* Dashboard Grid */
@@ -966,7 +975,9 @@ select option {
 
 .input-group input:focus, .input-group select:focus {
     border-color: var(--accent-income);
-    background: rgba(16, 185, 129, 0.05);
+    background: rgba(5, 214, 158, 0.08);
+    outline: 2px solid rgba(5, 214, 158, 0.3);
+    outline-offset: 2px;
 }
 
 /* Amount Input */
@@ -1664,7 +1675,9 @@ select option {
 
 .filter-select:focus, .filter-date:focus {
     border-color: var(--accent-income);
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(5, 214, 158, 0.08);
+    outline: 2px solid rgba(5, 214, 158, 0.3);
+    outline-offset: 2px;
 }
 
 /* Date input styling */
@@ -1762,7 +1775,8 @@ input[type="date"] {
 .p-input:focus {
     outline: none;
     border-color: var(--accent-income);
-    background: rgba(16, 185, 129, 0.05);
+    background: rgba(5, 214, 158, 0.08);
+    box-shadow: 0 0 0 3px rgba(5, 214, 158, 0.15);
 }
 
 /* Stock Summary Grid */
