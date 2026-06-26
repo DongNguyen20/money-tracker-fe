@@ -11,6 +11,14 @@ window.TransactionManager = {
         pageSize: 5
     },
 
+    normalizeType(type) {
+        return String(type || '').toLowerCase();
+    },
+
+    getDisplayAmount(amount) {
+        const value = Number(amount) || 0;
+        return Math.abs(value);
+    },
 
     async init() {
         this.initEventListeners();
@@ -27,7 +35,10 @@ window.TransactionManager = {
                 page: this.state.currentPage,
                 size: 1000 // Grab enough to sort/paginate locally for standard user or handle via server.
             });
-            App.state.transactions = res.content || [];
+            App.state.transactions = (res.content || []).map(tx => ({
+                ...tx,
+                type: this.normalizeType(tx.type)
+            }));
         } catch (error) {
             console.error('Failed to load transactions from API:', error);
             const stored = localStorage.getItem('mt_transactions');
@@ -151,23 +162,34 @@ window.TransactionManager = {
 
         console.log('openModal called with id:', id); // Debug
 
+        // Guard against null elements
+        if (!modal || !title || !form || !dateInput) {
+            console.error('Modal elements not found', { modal, title, form, dateInput });
+            return;
+        }
+
         // Ensure date input has no validation and set default value BEFORE modal opens
         dateInput.removeAttribute('required');
         dateInput.setAttribute('formnovalidate', '');
 
         if (id) {
             const txn = App.state.transactions.find(t => t.id == id);
+            if (!txn) {
+                console.error('Transaction not found:', id);
+                return;
+            }
+            const normalizedType = this.normalizeType(txn.type);
             title.textContent = 'Chỉnh sửa giao dịch';
             document.getElementById('txnEditId').value = id;
-            document.getElementById('txnAmount').value = new Intl.NumberFormat('vi-VN').format(txn.amount);
+            document.getElementById('txnAmount').value = new Intl.NumberFormat('vi-VN').format(this.getDisplayAmount(txn.amount));
             document.getElementById('txnNote').value = txn.note;
             dateInput.value = txn.date;
 
             document.querySelectorAll('#txnTypeSelector .type-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.type === txn.type);
+                btn.classList.toggle('active', btn.dataset.type === normalizedType);
             });
 
-            this.updateCategoryDropdown(txn.type, txn.categoryId);
+            this.updateCategoryDropdown(normalizedType, txn.categoryId);
         } else {
             title.textContent = 'Thêm giao dịch';
             form.reset();
@@ -195,7 +217,8 @@ window.TransactionManager = {
 
     updateCategoryDropdown(type, selectedId = null) {
         const select = document.getElementById('txnCategory');
-        const categories = App.state.categories.filter(c => c.type === type);
+        const normalizedType = this.normalizeType(type);
+        const categories = App.state.categories.filter(c => this.normalizeType(c.type) === normalizedType);
 
         select.innerHTML = categories.map(c => `
             <option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${c.icon} ${c.name}</option>
@@ -220,7 +243,7 @@ window.TransactionManager = {
         dateInput.setAttribute('formnovalidate', '');
 
         const amountStr = document.getElementById('txnAmount').value;
-        const amount = parseFloat(amountStr.replace(/\./g, ''));
+        const amount = Math.abs(parseFloat(amountStr.replace(/\./g, '')) || 0);
 
         console.log('Amount:', amount); // Debug
 
@@ -229,7 +252,8 @@ window.TransactionManager = {
             return;
         }
 
-        const type = document.querySelector('#txnTypeSelector .type-btn.active').dataset.type;
+        const selectedTypeButton = document.querySelector('#txnTypeSelector .type-btn.active');
+        const type = this.normalizeType(selectedTypeButton?.dataset.type || 'expense');
         const categoryId = document.getElementById('txnCategory').value;
         const note = document.getElementById('txnNote').value;
         let date = dateInput.value;
@@ -308,6 +332,7 @@ window.TransactionManager = {
                 
                 App.showToast('Đã xoá giao dịch');
                 this.render();
+                window.location.reload();
             } catch (error) {
                 console.error('Failed to delete transaction:', error);
                 App.showToast('Lỗi khi xoá giao dịch', 'error');
@@ -394,7 +419,7 @@ window.TransactionManager = {
                             <div class="txn-item">
                                 <div class="txn-icon" style="background: ${cat.color}20; color: ${cat.color}">${cat.icon}</div>
                                 <div class="txn-info">
-                                    <span class="txn-name">${t.note}</span>
+                                    <span class="txn-note">${t.note}</span>
                                     <span class="txn-category">${cat.name}</span>
                                 </div>
                                 <div class="txn-amount ${t.type}">${(t.type === 'expense' || t.type === 'saving') ? '-' : '+'}${App.formatCurrency(t.amount)}</div>

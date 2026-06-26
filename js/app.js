@@ -118,11 +118,9 @@ window.App = {
 
         // FAB
         const fab = document.getElementById('fabBtn');
-        const fabMobile = document.getElementById('fabMobile');
         const openTxnModal = () => TransactionManager.openModal();
 
         if (fab) fab.addEventListener('click', openTxnModal);
-        if (fabMobile) fabMobile.addEventListener('click', openTxnModal);
 
         // Mobile Bottom Drawer
         const openDrawerBtn = document.getElementById('openMobileDrawerBtn');
@@ -167,6 +165,11 @@ window.App = {
     async renderView() {
         const mainContent = document.getElementById('mainContent');
         const viewId = this.state.currentView;
+        
+        if (!mainContent) {
+            console.error('mainContent element not found');
+            return;
+        }
         
         const managers = {
             dashboard: window.DashboardManager,
